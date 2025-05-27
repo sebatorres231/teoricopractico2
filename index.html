@@ -1,0 +1,642 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡La Figura Misteriosa del Museo en Casa!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #F5F5DC; /* Beige Cálido */
+            color: #8B4513; /* Marrón Chocolate para texto principal */
+        }
+        /* Estilos para títulos principales */
+        h1, h2, h3 {
+            font-family: 'Amatic SC', cursive;
+            color: #FF8C00; /* Naranja Vibrante para títulos */
+        }
+        /* Estilos para subtítulos de sección */
+        .section-title {
+            color: #00C9A7; /* Verde Esmeralda */
+        }
+        /* Contenedor de la imagen interactiva */
+        .interactive-image-container {
+            position: relative;
+            width: 100%;
+            max-width: 768px; /* Aumentado para que la imagen interactiva sea más grande */
+            margin: 0 auto;
+        }
+        /* Puntos interactivos sobre la imagen */
+        .interactive-point {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #00CED1; /* Azul Eléctrico */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.25rem;
+            color: white;
+            cursor: pointer;
+            border: 2px solid #8B4513; /* Borde Marrón Chocolate */
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        /* Posiciones de los puntos interactivos (ajustar según la imagen real) */
+        /* Estas posiciones son aproximadas y deben ajustarse si la imagen cambia */
+        .point-1 { top: 30%; left: 30%; } /* Nariz */
+        .point-2 { top: 20%; left: 65%; } /* Ojos */
+        .point-3 { top: 65%; left: 45%; } /* Boca */
+        .point-4 { top: 40%; left: 75%; } /* Líneas mejilla */
+
+        /* Estilos del modal (ventana emergente) */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #F5F5DC; /* Beige Cálido */
+            margin: auto;
+            padding: 20px;
+            border: 5px solid #CD5C5C; /* Terracota Amigable */
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .close-button {
+            color: #CD5C5C;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #8B4513;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Estilos para áreas de texto y entradas */
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            border: 2px solid #CD5C5C;
+            border-radius: 8px;
+            background-color: #FFFFFF;
+            font-family: 'Quicksand', sans-serif;
+            color: #8B4513;
+        }
+        /* Estilos para botones */
+        button {
+            background-color: #00C9A7; /* Verde Esmeralda */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.2rem;
+            margin-top: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #00A88A;
+        }
+        /* Estilo para el indicador de carga */
+        .loading-indicator {
+            display: none; /* Oculto por defecto */
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: #FF8C00; /* Naranja Vibrante */
+        }
+
+        /* Estilos para el canvas de colorear */
+        #coloringCanvas {
+            border: 2px solid #8B4513;
+            background-color: white;
+            cursor: crosshair;
+            /* Asegura que el canvas sea responsive */
+            width: 100%; /* Ocupa el 100% de su contenedor padre */
+            height: auto;
+            display: block; /* Elimina espacio extra debajo del canvas */
+        }
+        .color-palette button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 5px;
+            border: 2px solid #8B4513;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.1s ease;
+        }
+        .color-palette button:hover {
+            transform: scale(1.1);
+        }
+        .color-palette button.selected {
+            border: 4px solid #FF8C00; /* Borde naranja para el color seleccionado */
+            transform: scale(1.15);
+        }
+
+        /* Estilos para el control de tamaño del pincel */
+        .brush-size-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #FFF8DC;
+            border-radius: 8px;
+            border: 2px solid #CD5C5C;
+        }
+        .brush-size-control label {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1rem;
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+        .brush-size-control input[type="range"] {
+            width: 100%;
+            max-width: 150px;
+            -webkit-appearance: none;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+        .brush-size-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00C9A7;
+            cursor: pointer;
+            border: 2px solid #8B4513;
+        }
+        .brush-size-control input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00C9A7;
+            cursor: pointer;
+            border: 2px solid #8B4513;
+        }
+        .brush-size-control span {
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.5rem;
+            color: #FF8C00;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-lg border-4 border-[#CD5C5C]">
+        <h1 class="text-4xl sm:text-5xl text-center mb-6">¡La Figura Misteriosa del Museo en Casa!</h1>
+        <p class="text-center text-lg mb-8">¡Hola, pequeños exploradores! Hoy vamos a descubrir los secretos de una figura muy especial que viene de hace mucho, mucho tiempo.</p>
+
+        <h2 class="section-title text-3xl sm:text-4xl text-center mb-6">1. Descubre los Misterios de la Figura Antigua</h2>
+
+        <p class="text-center text-lg mb-4">¿Qué ves en esta figura? ¡Toca los puntos de colores para descubrir sus secretos!</p>
+
+        <div class="interactive-image-container">
+            <img src="cara.svg" alt="Vaso retrato ceremonial con personaje de nariz en gancho para colorear" class="w-full h-auto rounded-lg shadow-md">
+
+            <div class="interactive-point point-1" data-info="nariz">1</div>
+            <div class="interactive-point point-2" data-info="ojos">2</div>
+            <div class="interactive-point point-3" data-info="boca">3</div>
+            <div class="interactive-point point-4" data-info="lineas">4</div>
+        </div>
+
+        <div class="mt-8 p-4 bg-[#FFF8DC] rounded-lg border-2 border-[#CD5C5C]">
+            <h3 class="section-title text-2xl sm:text-3xl mb-4 text-center">Un poco más sobre esta Figura Misteriosa</h3>
+            <p class="text-lg mb-2">Esta es una pieza muy especial que se encuentra en el Museo de Antropología de la Universidad Nacional de Córdoba. Fue hecha hace cientos o miles de años por personas de la Cultura Aguada del Valle de Ambato, Catamarca (500 – 1100 d.C.) que vivieron en nuestro continente. ¡Imagina cuántas historias podría contarnos si hablara!</p>
+            <p class="text-lg">Está hecha de cerámica, un material que se crea a partir de la tierra (barro) y que se endurece al cocinarlo con fuego. Las personas de antes eran expertas en transformar la naturaleza en objetos increíbles como este, que nos ayudan a entender cómo vivían y qué pensaban.</p>
+        </div>
+        
+        <div class="mt-8">
+            <h3 class="section-title text-2xl sm:text-3xl mb-4">¡Tu Turno de Responder!</h3>
+            <p class="text-lg mb-2">¿Qué sentimientos te produce mirar esta figura antigua?</p>
+            <textarea id="feeling-response" rows="3" class="w-full p-3 rounded-lg border-2 border-[#CD5C5C] focus:outline-none focus:ring-2 focus:ring-[#00C9A7]"></textarea>
+
+            <p class="text-lg mt-4 mb-2">Si esta figura pudiera hablar, ¿qué historias nos contaría?</p>
+            <textarea id="story-response" rows="3" class="w-full p-3 rounded-lg border-2 border-[#CD5C5C] focus:outline-none focus:ring-2 focus:ring-[#00C9A7]"></textarea>
+        </div>
+
+        <div class="mt-12 pt-8 border-t-4 border-[#CD5C5C]">
+            <h2 class="section-title text-3xl sm:text-4xl text-center mb-6">3. ¡Historias Mágicas de la Figura! ✨</h2>
+            <p class="text-center text-lg mb-4">¿Quieres que la figura te cuente una historia? ¡Haz clic en el botón y el misterio se revelará!</p>
+            <div class="text-center">
+                <button id="generateStoryButton">¡Generar Historia! ✨</button>
+                <p id="loadingStory" class="loading-indicator">Cargando historia...</p>
+            </div>
+            <div id="storyOutput" class="mt-6 p-4 bg-[#FFF8DC] rounded-lg border-2 border-[#CD5C5C] text-lg hidden">
+                </div>
+        </div>
+        <div class="mt-12 pt-8 border-t-4 border-[#CD5C5C]">
+            <h2 class="section-title text-3xl sm:text-4xl text-center mb-6">4. ¡Pregúntale a la Figura! 🗣️</h2>
+            <p class="text-center text-lg mb-4">¿Tienes alguna pregunta para esta figura antigua? ¡Escribe lo que quieras saber y ella intentará responderte!</p>
+            <div class="text-center">
+                <textarea id="questionInput" rows="2" class="w-full p-3 rounded-lg border-2 border-[#CD5C5C] focus:outline-none focus:ring-2 focus:ring-[#00C9A7]" placeholder="Ej: ¿Qué comían los niños de tu tiempo?"></textarea>
+                <button id="askFigureButton" class="mt-4">¡Preguntar a la Figura! 💬</button>
+                <p id="loadingAnswer" class="loading-indicator">La figura está pensando...</p>
+            </div>
+            <div id="answerOutput" class="mt-6 p-4 bg-[#FFF8DC] rounded-lg border-2 border-[#CD5C5C] text-lg hidden">
+                </div>
+        </div>
+        <div class="mt-12 pt-8 border-t-4 border-[#CD5C5C]">
+            <h2 class="section-title text-3xl sm:text-4xl text-center mb-6">5. ¡A Colorear la Figura Misteriosa!</h2>
+            <p class="text-center text-lg mb-4">¡Ahora que conoces sus secretos, es tu turno de darle vida con tus colores favoritos!</p>
+
+            <div class="flex flex-col md:flex-row items-center md:items-start justify-center gap-4">
+                <div class="coloring-canvas-wrapper w-full md:w-3/4 max-w-2xl flex justify-center">
+                    <canvas id="coloringCanvas" class="rounded-lg shadow-md w-full h-auto"></canvas>
+                </div>
+
+                <div class="flex flex-col items-center md:w-1/4 gap-2 mb-4 p-4 rounded-lg border-2 border-[#CD5C5C] bg-[#FFF8DC]">
+                    <div class="color-palette flex flex-wrap justify-center gap-2">
+                        <button class="color-button selected" style="background-color: #FF0000;" data-color="#FF0000"></button>
+                        <button class="color-button" style="background-color: #FFA500;" data-color="#FFA500"></button>
+                        <button class="color-button" style="background-color: #FFFF00;" data-color="#FFFF00"></button>
+                        <button class="color-button" style="background-color: #00FF00;" data-color="#00FF00"></button>
+                        <button class="color-button" style="background-color: #0000FF;" data-color="#0000FF"></button>
+                        <button class="color-button" style="background-color: #800080;" data-color="#800080"></button>
+                        <button class="color-button" style="background-color: #FF69B4;" data-color="#FF69B4"></button>
+                        <button class="color-button" style="background-color: #40E0D0;" data-color="#40E0D0"></button>
+                        <button class="color-button" style="background-color: #7FFF00;" data-color="#7FFF00"></button>
+                        <button class="color-button" style="background-color: #000000;" data-color="#000000"></button>
+                        <button class="color-button" style="background-color: #FFFFFF;" data-color="#FFFFFF"></button>
+                    </div>
+                    <div class="brush-size-control w-full mt-4">
+                        <label for="brushSize">Tamaño del Pincel:</label>
+                        <input type="range" id="brushSize" min="1" max="50" value="10">
+                        <span id="brushSizeValue">10</span>
+                    </div>
+                    <button id="clearCanvasButton" class="bg-red-500 hover:bg-red-700 w-full" style="background-color: #CD5C5C; color: white; font-size: 1rem; padding: 8px 15px; border-radius: 8px;">Borrar Todo</button>
+                </div>
+            </div>
+            <p class="text-lg mt-4 text-center">¡Usa el ratón o tu dedo para colorear! Elige un color y pinta.</p>
+        </div>
+    </div>
+
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 id="modalTitle" class="section-title text-3xl mb-4"></h3>
+            <p id="modalText" class="text-lg mb-4"></p>
+            <div id="modalDrawingPrompt" class="hidden">
+                <p class="text-lg mt-4 mb-2">¡Dibuja tu idea aquí o describe cómo lo harías!</p>
+                <textarea id="modalDrawingResponse" rows="3" class="w-full p-3 rounded-lg border-2 border-[#CD5C5C] focus:outline-none focus:ring-2 focus:ring-[#00C9A7]"></textarea>
+            </div>
+            <button id="modalCloseButton">¡Entendido!</button>
+        </div>
+    </div>
+
+    <script>
+        // Datos para los puntos interactivos en la imagen
+        const interactiveData = {
+            nariz: {
+                title: "1. La Nariz Curiosa",
+                text: "¿A qué se parece esta nariz? ¡Es como un gancho! ¿Cómo sería tu nariz si fuera diferente?",
+                prompt: "Dibuja tu nariz de otra forma si fuera tuya."
+            },
+            ojos: {
+                title: "2. Los Ojos Cerrados",
+                text: "¡Estos ojos están cerrados! ¿Por qué crees que los tiene así? ¿Está soñando? ¿Está escuchando un secreto?",
+                prompt: "Dibuja lo que crees que está soñando o escuchando."
+            },
+            boca: {
+                title: "3. La Boca Abierta",
+                text: "¿Qué crees que está diciendo o haciendo con la lengua afuera? ¡Intenta poner tu boca igual!",
+                prompt: "Dibuja o escribe qué crees que está diciendo."
+            },
+            lineas: {
+                title: "4. Las Líneas Secretas",
+                text: "Mira las líneas en las mejillas y en la frente de la figura. ¿Qué crees que dibujaron allí? ¿Son tatuajes, pinturas o historias secretas?",
+                prompt: "Dibuja o inventa una historia sobre estas líneas."
+            }
+        };
+
+        // Referencias a elementos del DOM para el modal
+        const modal = document.getElementById('infoModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const modalDrawingPrompt = document.getElementById('modalDrawingPrompt');
+        const modalDrawingResponse = document.getElementById('modalDrawingResponse');
+        const closeButton = document.querySelector('.close-button');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+
+        // Referencias para la sección de historias
+        const generateStoryButton = document.getElementById('generateStoryButton');
+        const loadingStory = document.getElementById('loadingStory');
+        const storyOutput = document.getElementById('storyOutput');
+
+        // Referencias para la nueva sección de preguntas a la figura
+        const questionInput = document.getElementById('questionInput');
+        const askFigureButton = document.getElementById('askFigureButton');
+        const loadingAnswer = document.getElementById('loadingAnswer');
+        const answerOutput = document.getElementById('answerOutput');
+
+        // Referencias para la sección de colorear
+        const coloringCanvas = document.getElementById('coloringCanvas');
+        const ctx = coloringCanvas.getContext('2d');
+        const clearCanvasButton = document.getElementById('clearCanvasButton');
+        const colorButtons = document.querySelectorAll('.color-button');
+        const brushSizeSlider = document.getElementById('brushSize');
+        const brushSizeValueSpan = document.getElementById('brushSizeValue');
+        let isDrawing = false;
+        let currentColor = '#FF0000'; // Color inicial: Rojo Vibrante
+        let currentBrushSize = 10; // Tamaño inicial del pincel
+        let lastX = 0;
+        let lastY = 0;
+
+        // Variables para la escala del canvas
+        let scaleX = 1;
+        let scaleY = 1;
+
+        // Cargar las imágenes en el canvas al iniciar
+        const interactiveImg = new Image();
+        const coloringImg = new Image();
+
+        // Cargar la imagen para la sección interactiva (cara.svg)
+        interactiveImg.src = 'cara.svg';
+        interactiveImg.onload = () => {
+            // No se dibuja directamente en un canvas, solo se asegura que la imagen se cargue.
+            // La imagen interactiva se muestra directamente con la etiqueta <img>.
+        };
+
+        // Función para redibujar la imagen original en el canvas de colorear
+        function redrawImage() {
+            ctx.clearRect(0, 0, coloringCanvas.width, coloringCanvas.height); // Limpiar todo el canvas
+            ctx.drawImage(coloringImg, 0, 0, coloringCanvas.width, coloringCanvas.height); // Volver a dibujar la imagen original
+            ctx.strokeStyle = currentColor; // Restablecer el color del pincel
+            ctx.lineWidth = currentBrushSize; // Restablecer el tamaño del pincel
+        }
+
+        // Cargar la imagen para la sección de colorear (cara2.svg)
+        coloringImg.src = 'cara2.svg'; // Usamos cara2.svg para el canvas de colorear
+        coloringImg.onload = () => {
+            // Asegurar que el canvas tenga el mismo tamaño interno que la imagen original
+            coloringCanvas.width = coloringImg.width;
+            coloringCanvas.height = coloringImg.height;
+            ctx.drawImage(coloringImg, 0, 0, coloringCanvas.width, coloringCanvas.height);
+            // Configurar el estilo de dibujo inicial
+            ctx.lineWidth = currentBrushSize; // Usar el tamaño de pincel inicial
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = currentColor;
+
+            // Calcular el factor de escala inicial después de cargar la imagen
+            updateCanvasScale();
+        };
+
+        // Función para actualizar el factor de escala
+        function updateCanvasScale() {
+            const rect = coloringCanvas.getBoundingClientRect();
+            // rect.width y rect.height son el tamaño real (display) del canvas en píxeles de pantalla
+            // coloringCanvas.width y coloringCanvas.height son el tamaño interno (resolución de dibujo)
+            scaleX = coloringCanvas.width / rect.width;
+            scaleY = coloringCanvas.height / rect.height;
+            // console.log("Canvas display size:", rect.width, rect.height, "Internal size:", coloringCanvas.width, coloringCanvas.height, "Scale:", scaleX, scaleY);
+        }
+
+        // Actualizar escala cuando la ventana cambia de tamaño (si el canvas es responsive)
+        // Esto es crucial para que el dibujo se alinee si el usuario redimensiona la ventana
+        window.addEventListener('resize', updateCanvasScale);
+
+        // Eventos para el coloreado
+        coloringCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = coloringCanvas.getBoundingClientRect();
+            lastX = (e.clientX - rect.left) * scaleX; // Aplicar escala a la coordenada X
+            lastY = (e.clientY - rect.top) * scaleY;   // Aplicar escala a la coordenada Y
+        });
+
+        coloringCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            ctx.beginPath();
+            const rect = coloringCanvas.getBoundingClientRect();
+            const currentX = (e.clientX - rect.left) * scaleX; // Aplicar escala
+            const currentY = (e.clientY - rect.top) * scaleY;   // Aplicar escala
+
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            [lastX, lastY] = [currentX, currentY];
+        });
+
+        coloringCanvas.addEventListener('mouseup', () => isDrawing = false);
+        coloringCanvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // Eventos táctiles para dispositivos móviles
+        coloringCanvas.addEventListener('touchstart', (e) => {
+            isDrawing = true;
+            const touch = e.touches[0];
+            const rect = coloringCanvas.getBoundingClientRect();
+            lastX = (touch.clientX - rect.left) * scaleX;
+            lastY = (touch.clientY - rect.top) * scaleY;
+            e.preventDefault(); // Evitar el desplazamiento de la página
+        });
+
+        coloringCanvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing) return;
+            const touch = e.touches[0];
+            const rect = coloringCanvas.getBoundingClientRect();
+            const currentX = (touch.clientX - rect.left) * scaleX;
+            const currentY = (touch.clientY - rect.top) * scaleY;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            [lastX, lastY] = [currentX, currentY];
+            e.preventDefault(); // Evitar el desplazamiento de la página
+        });
+
+        coloringCanvas.addEventListener('touchend', () => isDrawing = false);
+        coloringCanvas.addEventListener('touchcancel', () => isDrawing = false);
+
+        // Selector de colores
+        colorButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remover 'selected' de todos los botones
+                colorButtons.forEach(btn => btn.classList.remove('selected'));
+                // Añadir 'selected' al botón clickeado
+                button.classList.add('selected');
+                currentColor = button.dataset.color;
+                ctx.strokeStyle = currentColor;
+            });
+        });
+
+        // Seleccionar el color inicial al cargar la página
+        document.querySelector('.color-button[data-color="#FF0000"]').classList.add('selected');
+
+        // Control de tamaño del pincel
+        brushSizeSlider.addEventListener('input', (e) => {
+            currentBrushSize = e.target.value;
+            ctx.lineWidth = currentBrushSize;
+            brushSizeValueSpan.textContent = currentBrushSize;
+        });
+
+        // Botón para borrar todo el canvas
+        clearCanvasButton.addEventListener('click', redrawImage);
+
+
+        // Añadir event listeners a cada punto interactivo
+        document.querySelectorAll('.interactive-point').forEach(point => {
+            point.addEventListener('click', function() {
+                const infoKey = this.dataset.info;
+                const data = interactiveData[infoKey];
+                modalTitle.textContent = data.title;
+                modalText.textContent = data.text;
+                modalDrawingPrompt.classList.remove('hidden'); // Mostrar el prompt de dibujo/escritura
+                modalDrawingResponse.value = ''; // Limpiar el área de texto
+                modal.style.display = 'flex'; // Mostrar el modal
+            });
+        });
+
+        // Event listeners para cerrar el modal
+        closeButton.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        modalCloseButton.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        // Cerrar modal si se hace clic fuera de él
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Función para generar historia con Gemini API
+        generateStoryButton.addEventListener('click', async () => {
+            loadingStory.style.display = 'block'; // Mostrar indicador de carga
+            storyOutput.classList.add('hidden'); // Ocultar salida anterior
+
+            const prompt = `Genera una historia corta y mágica para niños (6-10 años) sobre una figura de cerámica antigua con nariz en gancho, pómulos grandes y lengua afuera. La figura es de la Cultura Aguada (500 – 1100 d.C.) del Valle de Ambato, Catamarca. Incluye elementos de su cultura como casas de barro y piedra, cultivos de maíz, llamas y ceremonias en plazas. La historia debe ser positiva y despertar la imaginación.`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Dejar como está, Canvas lo proporcionará en tiempo de ejecución.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    storyOutput.innerHTML = `<p>${text}</p>`;
+                    storyOutput.classList.remove('hidden'); // Mostrar la historia
+                } else {
+                    storyOutput.innerHTML = `<p>¡Oh, la figura parece estar en un sueño profundo! Intenta preguntarle otra cosa.</p>`; // Mensaje modificado
+                    storyOutput.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Error al llamar a la API de Gemini para historia:", error);
+                storyOutput.innerHTML = `<p>Hubo un error al cargar la historia. Por favor, inténtalo más tarde.</p>`;
+                storyOutput.classList.remove('hidden');
+            } finally {
+                loadingStory.style.display = 'none'; // Ocultar indicador de carga
+            }
+        });
+
+        // Función para preguntar a la figura con Gemini API
+        askFigureButton.addEventListener('click', async () => {
+            const question = questionInput.value.trim();
+            if (!question) {
+                answerOutput.innerHTML = `<p>Por favor, escribe tu pregunta para la figura.</p>`;
+                answerOutput.classList.remove('hidden');
+                return;
+            }
+
+            loadingAnswer.style.display = 'block'; // Mostrar indicador de carga
+            answerOutput.classList.add('hidden'); // Ocultar salida anterior
+
+            // Información detallada de la Cultura Aguada para enriquecer el prompt
+            const aguadaInfo = `
+                La Cultura Aguada vivió entre los años 500 y 1100 d.C. en lo que hoy es Catamarca y La Rioja, Argentina.
+                Eran personas muy creativas que hacían cerámicas increíbles con dibujos de animales como felinos (pumas, jaguares)
+                y figuras que mezclaban humanos con animales. Estos dibujos eran muy importantes para ellos y tenían significados especiales.
+                Construían casas de barro y piedra. Cultivaban alimentos como el maíz y las papas.
+                También criaban llamas, que eran animales muy valiosos para ellos.
+                Eran excelentes artistas y artesanos, creando objetos de piedra, hueso y metal.
+            `;
+
+            const prompt = `Imagina que eres una figura de cerámica antigua de la Cultura Aguada (500 – 1100 d.C.) del Valle de Ambato, Catamarca.
+            Considera la siguiente información sobre tu cultura para tus respuestas:
+            ${aguadaInfo}
+            Responde a la siguiente pregunta de un niño de 6-10 años de forma imaginativa, sencilla, amigable y como si la figura misma hablara.
+            La pregunta es: "${question}"`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Dejar como está, Canvas lo proporcionará en tiempo de ejecución.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    answerOutput.innerHTML = `<p>${text}</p>`;
+                    answerOutput.classList.remove('hidden'); // Mostrar la respuesta
+                } else {
+                    answerOutput.innerHTML = `<p>¡Oh, la figura parece estar en un sueño profundo! Intenta preguntarle otra cosa.</p>`;
+                    answerOutput.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Error al llamar a la API de Gemini para pregunta:", error);
+                answerOutput.innerHTML = `<p>Hubo un error al preguntar a la figura. Por favor, inténtalo más tarde.</p>`;
+                answerOutput.classList.remove('hidden');
+            } finally {
+                loadingAnswer.style.display = 'none'; // Ocultar indicador de carga
+            }
+        });
+    </script>
+
+</body>
+</html>
